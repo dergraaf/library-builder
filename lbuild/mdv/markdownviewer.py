@@ -117,14 +117,13 @@ except ImportError:
     have_pygments = False
 
 import time
-import markdown
 import re
 from docopt import docopt
 import markdown.util
 from markdown.util import etree
 from markdown.extensions.tables import TableExtension
 from random import randint
-from tabulate import tabulate
+from .tabulate import tabulate
 from json import loads
 from markdown.treeprocessors import Treeprocessor
 from markdown.extensions import Extension, fenced_code
@@ -389,47 +388,47 @@ class Tags:
 
     """ can be overwritten in derivations. """
     # @staticmethod everywhere is eye cancer, so we instantiate it later
-    def h(_, s, level):
+    def h(self, s, level):
         return '\n%s%s' % (low('#' * 0), col(s, globals()['H%s' % level]))
 
-    def h1(_, s, **kw):
-        return _.h(s, 1)
+    def h1(self, s, **kw):
+        return self.h(s, 1)
 
-    def h2(_, s, **kw):
-        return _.h(s, 2)
+    def h2(self, s, **kw):
+        return self.h(s, 2)
 
-    def h3(_, s, **kw):
-        return _.h(s, 3)
+    def h3(self, s, **kw):
+        return self.h(s, 3)
 
-    def h4(_, s, **kw):
-        return _.h(s, 4)
+    def h4(self, s, **kw):
+        return self.h(s, 4)
 
-    def h5(_, s, **kw):
-        return _.h(s, 5)
+    def h5(self, s, **kw):
+        return self.h(s, 5)
 
-    def h6(_, s, **kw):
-        return _.h(s, 5)  # have not more then 5
+    def h6(self, s, **kw):
+        return self.h(s, 5)  # have not more then 5
 
-    def h7(_, s, **kw):
-        return _.h(s, 5)  # cols in the themes, low them all
+    def h7(self, s, **kw):
+        return self.h(s, 5)  # cols in the themes, low them all
 
-    def h8(_, s, **kw):
-        return _.h(s, 5)
+    def h8(self, s, **kw):
+        return self.h(s, 5)
 
-    def p(_, s, **kw):
+    def p(self, s, **kw):
         return col(s, T)
 
-    def a(_, s, **kw):
+    def a(self, s, **kw):
         return col(s, L)
 
-    def hr(_, s, **kw):
+    def hr(self, s, **kw):
         # we want nice line seps:
         hir = kw.get('hir', 1)
         ind = (hir - 1) * left_indent
         s = e = col(hr_ends, globals()['H%s' % hir])
         return low('\n%s%s%s%s%s\n' % (ind, s, hr_marker, e, ind))
 
-    def code(_, s, from_fenced_block=None, **kw):
+    def code(self, s, from_fenced_block=None, **kw):
         """ md code AND ``` style fenced raw code ends here"""
         lang = kw.get('lang')
 

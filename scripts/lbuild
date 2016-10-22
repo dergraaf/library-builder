@@ -19,6 +19,7 @@ sys.path.append(rootpath)
 
 import lbuild.parser
 import lbuild.logger
+import lbuild.console
 import lbuild.vcs.common
 
 
@@ -125,11 +126,12 @@ if __name__ == '__main__':
     parser_build = subparsers.add_parser("build",
         help="Generate the library source code blob with the given options.")
 
-
-
     args = parser.parse_args()
 
     lbuild.logger.configure_logger(args.verbose)
+
+    console = lbuild.console.Console()
+
     try:
         if args.action == 'init':
             lbuild.vcs.common.initialize(args.config)
@@ -153,7 +155,7 @@ if __name__ == '__main__':
             elif args.action in ['discover-modules', 'modules']:
                 modules = parser.prepare_repositories(repo_options)
                 for module in sorted(list(modules.values())):
-                    print(module)
+                    print(str(module))
             elif args.action in ['dependencies']:
                 modules = parser.prepare_repositories(repo_options)
                 print(lbuild.builder.dependency.graphviz(parser.repositories))
@@ -169,7 +171,8 @@ if __name__ == '__main__':
 
                     if option.short_description:
                         print()
-                        print(textwrap.indent(option.short_description, "  "))
+                        # print(textwrap.indent(console.format(option.short_description), "  "))
+                        print(console.format(option.short_description))
                         print()
             elif args.action in ['discover-option', 'option']:
                 option_name = args.option_name
@@ -179,7 +182,7 @@ if __name__ == '__main__':
                     _, options = get_modules(parser, repo_options)
                     option = parser.find_module(options, option_name)
 
-                print(option.factsheet())
+                print(console.format(option.factsheet()))
                 print()
             elif args.action in ['discover-option-values', 'option-values']:
                 option_name = args.option_name
