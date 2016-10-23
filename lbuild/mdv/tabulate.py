@@ -1,11 +1,31 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) 2011-2014 Sergey Astanin
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+# Downloaded from:
 # https://bitbucket.org/astanin/python-tabulate/raw/7e3afe2f7170ccdb7de8c3c264471140d09523ba/tabulate.py
 
 from __future__ import print_function
 
 """Pretty-print tabular data."""
-
-
 
 from collections import namedtuple
 from platform import python_version_tuple
@@ -320,7 +340,7 @@ def simple_separated_format(separator):
 
 def _isconvertible(conv, string):
     try:
-        n = conv(string)
+        _ = conv(string)
         return True
     except (ValueError, TypeError):
         return False
@@ -691,10 +711,10 @@ def _normalize_tabular_data(tabular_data, headers):
 
     # pad with empty headers for initial columns if necessary
     if headers and len(rows) > 0:
-       nhs = len(headers)
-       ncols = len(rows[0])
-       if nhs < ncols:
-           headers = [""]*(ncols - nhs) + headers
+        nhs = len(headers)
+        ncols = len(rows[0])
+        if nhs < ncols:
+            headers = [""] * (ncols - nhs) + headers
 
     return rows, headers
 

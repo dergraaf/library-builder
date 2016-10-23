@@ -1,6 +1,34 @@
 #!/usr/bin/python
 # coding: utf-8
-
+# Copyright (c) 2002-2016, Axiros GmbH
+#                    2016, Fabian Greif
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#  * Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+#
+#  * Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#  * Neither the name Axiros nor the names of its contributors may be used to
+#    endorse or promote products derived from this software without specific
+#    prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 """_
 # Usage:
 
@@ -128,6 +156,8 @@ from json import loads
 from markdown.treeprocessors import Treeprocessor
 from markdown.extensions import Extension, fenced_code
 from html.parser import HTMLParser
+
+import pprint
 
 # ---------------------------------------------------------------------- Config
 hr_sep, txt_block_cut, code_pref, list_pref, hr_ends = \
@@ -543,6 +573,14 @@ class AnsiPrinter(Treeprocessor):
             """
             is_txt_and_inline_markup = 0
 
+            if el.tag == "code" and parent.tag == "pre":
+                # Handle <pre><code>...</code></pre> statements.
+                # Use a one lower identation level because the <pre> tags
+                # add an additional level.
+                ind = left_indent * (hir - 1)
+                out.append(textwrap.indent(el.text.rstrip(), ind))
+                return out
+
             if el.tag == 'hr':
                 return out.append(tags.hr('', hir=hir))
 
@@ -586,10 +624,10 @@ class AnsiPrinter(Treeprocessor):
                         k = t[4:].split(' ', 1)[0]
                         admons[k] = admons.values()[0]
 
-                    pref = body_pref = '┃ '
-                    pref += (k.capitalize()) + " "
-                    admon = k
                     t = t.split(k, 1)[1]
+                    pref = body_pref = '┃ '
+                    pref += k.capitalize() + " " if not t.startswith(":") else ""
+                    admon = k
 
                 # set the parent, e.g. nrs in ols:
                 if el.get('pref'):
@@ -649,8 +687,8 @@ class AnsiPrinter(Treeprocessor):
                 if el.tag == 'p':
                     out.append('')
 
-                if admon:
-                    out.append('\n')
+                # if admon:
+                #    out.append('\n')
 
             # have children?
             #    nr for ols:

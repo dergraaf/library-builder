@@ -63,7 +63,7 @@ class Option:
             title_list = []
             body_list = []
             for line in description.splitlines():
-                line = line.strip()
+                line = line.rstrip()
                 if not title_found:
                     if line == "":
                         if len(title_list) > 0:
