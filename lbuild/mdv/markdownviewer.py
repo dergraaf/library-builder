@@ -178,9 +178,11 @@ show_links = None
 
 # columns(!) - may be set to smaller width:
 try:
-    term_rows, term_columns = os.popen(
-        'stty size 2>/dev/null', 'r').read().split()
+    term_rows, term_columns = os.popen('stty size 2>/dev/null', 'r').read().split()
     term_columns, term_rows = int(term_columns), int(term_rows)
+
+    # FIXME set terminal width fixed
+    term_columns = 80
 except:
     if '-' not in sys.argv:
         print('!! Could not derive your terminal width !!')
@@ -389,7 +391,7 @@ class Tags:
     """ can be overwritten in derivations. """
     # @staticmethod everywhere is eye cancer, so we instantiate it later
     def h(self, s, level):
-        return '\n%s%s' % (low('#' * 0), col(s, globals()['H%s' % level]))
+        return '%s%s\n' % (low('#' * 0), col(s, globals()['H%s' % level]))
 
     def h1(self, s, **kw):
         return self.h(s, 1)
@@ -461,8 +463,7 @@ def is_text_node(el):
     """ """
     s = str(etree.tostring(el))
     # strip our tag:
-    html = s.split('<{}'.format(el.tag), 1)[1].split(
-        '>', 1)[1].rsplit('>', 1)[0]
+    html = s.split('<{}'.format(el.tag), 1)[1].split('>', 1)[1].rsplit('>', 1)[0]
     # do we start with another tagged child which is NOT in inlines:?
     if not html.startswith('<'):
         return 1, html
@@ -488,40 +489,6 @@ def rewrap(el, t, ind, pref):
     dedented = textwrap.dedent(t).strip()
     ret = textwrap.fill(dedented, width=cols)
     return ret
-
-    # forgot why I didn't use textwrap from the beginning. In case there is a
-    # reason I leave the old code here:
-    # wrapping:
-    # we want to keep existing linebreaks after punctuation
-    # marks. the others we rewrap:
-
-    puncs = ',', '.', '?', '!', '-', ':'
-    parts = []
-    origp = t.splitlines()
-    if len(origp) > 1:
-        pos = -1
-        while pos < len(origp) - 1:
-            pos += 1
-            # last char punctuation?
-            if origp[pos][-1] not in puncs and \
-                    not pos == len(origp) - 1:
-                # concat:
-                parts.append(origp[pos].strip() + ' ' +
-                             origp[pos + 1].strip())
-                pos += 1
-            else:
-                parts.append(origp[pos].strip())
-        t = '\n'.join(parts)
-    # having only the linebreaks with puncs before we rewrap
-    # now:
-    parts = []
-    for part in t.splitlines():
-        parts.extend([part[i:i + cols] for i in range(0, len(part), cols)])
-    # last remove leading ' ' (if '\n' came just before):
-    t = []
-    for p in parts:
-        t.append(p.strip())
-    return '\n'.join(t)
 
 
 def split_blocks(text_block, w, cols, part_fmter=None):
@@ -596,11 +563,15 @@ class AnsiPrinter(Treeprocessor):
                                            ('em', emph_start, emph_end)):
                         t = t.replace('<%s>' % tg, start)
                         t = t.replace('</%s>' % tg, end)
+
+                    t = t.replace('<br />', '\n')
                     t = html_parser.unescape(t)
                 else:
                     t = el.text
 
-                t = t.strip()
+                # Remove any linebreaks left in there by the markdown parser
+                t = " ".join([s.strip() for s in t.split(r"\n")])
+
                 admon = ''
                 pref = body_pref = ''
                 if t.startswith('!!! '):
@@ -616,7 +587,7 @@ class AnsiPrinter(Treeprocessor):
                         admons[k] = admons.values()[0]
 
                     pref = body_pref = '┃ '
-                    pref += (k.capitalize())
+                    pref += (k.capitalize()) + " "
                     admon = k
                     t = t.split(k, 1)[1]
 
@@ -639,7 +610,6 @@ class AnsiPrinter(Treeprocessor):
 
                 # indent. can color the prefixes now, no more len checks:
                 if admon:
-                    out.append('\n')
                     pref = col(pref, globals()[admons[admon]])
                     body_pref = col(body_pref, globals()[admons[admon]])
 
@@ -675,6 +645,9 @@ class AnsiPrinter(Treeprocessor):
                     for l in 'src', 'href':
                         if l in list(el.keys()):
                             out[-1] += low('(%s) ' % get_attr(el, l))
+
+                if el.tag == 'p':
+                    out.append('')
 
                 if admon:
                     out.append('\n')
@@ -765,8 +738,8 @@ class AnsiPrinter(Treeprocessor):
 
                 # handle the ``` style unindented code blocks -> parsed as p:
                 formatter(c, out, hir + 1, parent=el)
-            # if el.tag == 'ul' or el.tag == 'ol' and not out[-1] == '\n':
-            #    out.append('\n')
+            if el.tag == 'ul' or el.tag == 'ol' and not (out[-1] == '' or out[-1] == '\n'):
+                out.append('')
 
         out = []
         formatter(doc, out)

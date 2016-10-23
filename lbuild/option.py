@@ -45,27 +45,42 @@ class Option:
             return self._description
 
     @property
-    def short_description(self):
+    def split_description(self, wrap=True):
         """
-        Returns the wrapped first paragraph of the description.
+        Returns the wrapped first paragraph of the description as a title and
+        the remaing part of the description that is not covered by the
+        title as the descriptio body.
 
         A paragraph is defined by non-whitespace text followed by an empty
         line.
         """
         description = self.description
-        if description is not None:
-            lines = description.splitlines()
-            title = []
-            for line in lines:
+        if description is None:
+            title = None
+            body = None
+        else:
+            title_found = False
+            title_list = []
+            body_list = []
+            for line in description.splitlines():
                 line = line.strip()
-                if line == "":
-                    if len(title) > 0:
-                        break
+                if not title_found:
+                    if line == "":
+                        if len(title_list) > 0:
+                            title_found = True
+                    else:
+                        title_list.append(line)
                 else:
-                    title.append(line)
-            description = "\n".join(textwrap.wrap("\n".join(title), 80))
+                    body_list.append(line)
 
-        return description
+            body = "\n".join(body_list).strip()
+
+            if wrap:
+                title = "\n".join(textwrap.wrap("\n".join(title_list), 80))
+            else:
+                title = " ".join(title_list)
+
+        return title, body
 
     @property
     def value(self):
@@ -108,17 +123,16 @@ class Option:
 
     def factsheet(self):
         output = []
-        output.append(self.fullname)
-        output.append("=" * len(self.fullname))
-        output.append("")
+        output.append("# {}\n".format(self.fullname))
         if self.value is not None:
-            output.append("Current value: {}".format(self.value))
+            output.append("Current value: {}  ".format(self.value))
         output.append("Possible values: {}".format(self.values_hint()))
 
-        description = self.description.strip()
-        if len(description) > 0:
-            output.append("")
-            output.append(description)
+        title, body = self.split_description
+        if title:
+            output.append("\n## {}\n".format(title))
+        if body:
+            output.append(body)
         return "\n".join(output)
 
 

@@ -78,6 +78,13 @@ if __name__ == '__main__':
         action='count',
         default=0,
         dest='verbose')
+    parser.add_argument('--no-markdown',
+        action="store_false",
+        default=True,
+        dest='markdown',
+        help="Disable the markdown formatting of the option descriptions. "
+             "Markdown is only activated if the terminal supports it and the "
+             "required python libraries are installed.")
 
     subparsers = parser.add_subparsers(title="Actions",
         dest="action")
@@ -130,7 +137,7 @@ if __name__ == '__main__':
 
     lbuild.logger.configure_logger(args.verbose)
 
-    console = lbuild.console.Console()
+    console = lbuild.console.Console(enable_markdown=args.markdown)
 
     try:
         if args.action == 'init':
@@ -169,10 +176,10 @@ if __name__ == '__main__':
                 for option in sorted(list(options.values())):
                     print(option.format())
 
-                    if option.short_description:
+                    title, body = option.split_description
+                    if title:
                         print()
-                        # print(textwrap.indent(console.format(option.short_description), "  "))
-                        print(console.format(option.short_description))
+                        print(textwrap.indent(textwrap.dedent(console.format(title)), "  "))
                         print()
             elif args.action in ['discover-option', 'option']:
                 option_name = args.option_name
@@ -182,6 +189,7 @@ if __name__ == '__main__':
                     _, options = get_modules(parser, repo_options)
                     option = parser.find_module(options, option_name)
 
+                print()
                 print(console.format(option.factsheet()))
                 print()
             elif args.action in ['discover-option-values', 'option-values']:

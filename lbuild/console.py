@@ -12,9 +12,9 @@ import sys
 
 class Console:
 
-    def __init__(self):
+    def __init__(self, enable_markdown=True):
         self._formatter = None
-        if self._supports_color():
+        if self._supports_color() and enable_markdown:
             self._load_markdown()
 
         if self._formatter is None:
@@ -52,7 +52,7 @@ class Console:
                                       theme=663.6093,
                                       c_theme=579.6579,
                                       c_def_lexer='cpp')
-        return output
+        return output.rstrip()
 
     def format(self, text=" "):
         return self._formatter(text)
