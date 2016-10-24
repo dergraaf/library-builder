@@ -9,6 +9,9 @@
 
 import os
 import sys
+import logging
+
+LOGGER = logging.getLogger("lbuild.console")
 
 class Console:
 
@@ -40,8 +43,9 @@ class Console:
             from .mdv import main
             self._markdownviewer = main
             self._formatter = self.__markdown
-        except ImportError:
-            raise
+            LOGGER.debug("Found Markdown formatter")
+        except ImportError as error:
+            LOGGER.warning("Disable Markdown formatting due to: %s", str(error))
 
     def __forward(self, text):
         return text
